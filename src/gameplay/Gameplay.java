@@ -63,6 +63,7 @@ public class Gameplay {
         GraphicsContext gc = this.canvas.getGraphicsContext2D();	// we will pass this gc to be able to draw on this Game's canvas
         
         GameplayTimer gameTimer = new GameplayTimer(gc, gameScene,stage);
+        gameTimer.setStartTime(System.currentTimeMillis());
         gameTimer.start();			// this internally calls the handle() method of our GameTimer
         
 	}	

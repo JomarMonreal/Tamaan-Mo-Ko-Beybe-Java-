@@ -1,7 +1,6 @@
 package gameplay;
 
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 
@@ -11,6 +10,7 @@ public class Sprite {
 	protected boolean visible;
 	protected double width;
 	protected double height;
+	protected boolean isShorter = false;
 
     public Sprite(double xPos, double yPos, double width, double height, Image image){
 		this.xPos = xPos;
@@ -21,13 +21,16 @@ public class Sprite {
 		this.visible = true;
 	}
 
-	private Rectangle2D getBounds(){
+	private Rectangle2D getBounds(boolean isShorter){
+		if(isShorter) {
+			return new Rectangle2D(this.xPos + this.width/4, this.yPos+ this.height/4, this.width/2, this.height/2);
+		}
 		return new Rectangle2D(this.xPos, this.yPos, this.width, this.height);
 	}
-
+	
 	protected boolean collidesWith(Sprite rect2)	{
-		Rectangle2D rectangle1 = this.getBounds();
-		Rectangle2D rectangle2 = rect2.getBounds();
+		Rectangle2D rectangle1 = this.getBounds(true);
+		Rectangle2D rectangle2 = rect2.getBounds(this.isShorter);
 
 		return rectangle1.intersects(rectangle2);
 	}

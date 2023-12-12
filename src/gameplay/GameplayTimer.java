@@ -12,11 +12,20 @@ import javafx.scene.input.MouseButton;
 //import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.canvas.GraphicsContext;
 
 public class GameplayTimer extends AnimationTimer{
+	//all in milliseconds
+	private long startTime = 0;
+	private long timeLeft;
+	private long minutesLeft = 0;
+	private long secondsLeft = 0;
+	private long gameTimeLength = 30000;
 	
 	private GraphicsContext gc;
 	private Scene scene;
@@ -39,15 +48,17 @@ public class GameplayTimer extends AnimationTimer{
 	
 	//for taya
 	private static Taya taya;
-	private Image tayaHarap = new Image("images/tayaharap.png");
-	private Image tayaLikod = new Image("images/tayalikod.png");
-	private Image tayaLeft = new Image("images/tayaleft.png");
-	private Image tayaRight = new Image("images/tayaright.png");
+	private Image tayaHarap = new Image("images/tayaharap1.png");
+	private Image tayaLikod = new Image("images/tayalikod1.png");
+	private Image tayaLeft = new Image("images/tayaleft1.png");
+	private Image tayaRight = new Image("images/tayaright1.png");
+	private Image tayaGotHit = new Image("images/tayapatay.png");
 	
 	public GameplayTimer(GraphicsContext gc, Scene scene, Stage stage) {
 		this.gc = gc;
 		this.scene = scene;
 		this.stage = stage;
+		this.timeLeft = this.gameTimeLength;
 		this.prepareActionHandlers();
 		
 		//initializing throwers
@@ -59,24 +70,11 @@ public class GameplayTimer extends AnimationTimer{
 		GameplayTimer.ball = new Ball(GameplayTimer.thrower1.getXPos() + 30, GameplayTimer.thrower1.getYPos()-(this.characterSize/2), 30, this.ballImage,10);
 		
 		//initializing taya
-		GameplayTimer.taya = new Taya(200,350,this.characterSize,this.characterSize,this.tayaHarap,9);
-		GameplayTimer.taya.initDirectionalImages(this.tayaHarap, this.tayaLikod, this.tayaLeft, this.tayaRight);
+		GameplayTimer.taya = new Taya(200,350,this.characterSize * 380/450,this.characterSize,this.tayaHarap,9);
+		GameplayTimer.taya.initDirectionalImages(this.tayaHarap, this.tayaLikod, this.tayaLeft, this.tayaRight, this.tayaGotHit);
 	}
-
-
-	@Override
-	public void handle(long currentNanoTime) {
-        this.moveSprites();
-        this.renderSprites();
-        
-        //when taya was hit by ball
-		if(GameplayTimer.ball.collidesWith(GameplayTimer.taya)) {
-			this.stop();
-			Gameplay.setGameOver(stage);
-			GameplayTimer.ball.setMoving(false);
-		}
-	}
-
+	
+	//event handlers setup
 	private void prepareActionHandlers() {
     	
     	this.scene.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -168,11 +166,61 @@ public class GameplayTimer extends AnimationTimer{
     	
     	
     }
+
+	//overriding handle from AnimationTimer
+	@Override
+	public void handle(long currentNanoTime) {
+		this.moveSprites();
+		this.render();
+		
+		//time handler
+		long elapsedTime = System.currentTimeMillis() - this.startTime;
+		this.timeLeft = this.gameTimeLength - elapsedTime;
+		this.minutesLeft = Math.floorDiv(timeLeft/1000, 60);
+		this.secondsLeft = (int) (timeLeft/1000) % 60;
+		
+		//when taya was hit by ball
+		if(GameplayTimer.ball.collidesWith(GameplayTimer.taya)) {
+			GameplayTimer.ball.setMoving(false);
+			GameplayTimer.taya.setImage(GameplayTimer.taya.getGotHit());
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			this.stop();
+			Gameplay.setGameOver(stage);
+		}
+		//when taya survives the round
+		if(this.timeLeft <= 0) {
+			GameplayTimer.ball.setMoving(false);			
+			this.stop();
+			Gameplay.setGameOver(stage);
+		}
+		
+        
+	}
 	
 	private void moveSprites() {
 		this.moveTaya();
 		this.moveBall();
 		this.moveThrowers();
+	}
+	
+	private void render() {
+		gc.clearRect(0, 0, Gameplay.WINDOW_WIDTH, Gameplay.WINDOW_HEIGHT);
+		gc.drawImage(background, 0, 0, Gameplay.WINDOW_WIDTH,Gameplay.WINDOW_HEIGHT);
+		
+		gc.setTextAlign(TextAlignment.LEFT);
+		gc.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD,15));
+		String timeDisplayText = "Time remaining: " + Long.toString(minutesLeft) + ":" + Long.toString(secondsLeft);
+		gc.setFill(Color.WHITE);
+		gc.fillText(timeDisplayText, 30, 40);
+		
+		GameplayTimer.thrower1.render(this.gc);
+		GameplayTimer.thrower2.render(this.gc);
+		GameplayTimer.taya.render(this.gc);
+		GameplayTimer.ball.render(gc);
 	}
 	
 	private void moveThrowers() {
@@ -266,22 +314,13 @@ public class GameplayTimer extends AnimationTimer{
 		GameplayTimer.ball.setYPos(GameplayTimer.ball.getYPos() + GameplayTimer.ball.getNormalizedVectorY() * GameplayTimer.ball.getSpeed());
 		
 		//bouncing mechanics
-		if (GameplayTimer.ball.getXPos() < this.ballBoundsMarginX-10 || GameplayTimer.ball.getXPos() > Gameplay.WINDOW_WIDTH-this.ballBoundsMarginX) {
+		if (GameplayTimer.ball.getXPos() < this.ballBoundsMarginX-20 || GameplayTimer.ball.getXPos() > Gameplay.WINDOW_WIDTH-this.ballBoundsMarginX) {
 			GameplayTimer.ball.setNormalizedVectorX(GameplayTimer.ball.getNormalizedVectorX() * -1);	//reverse x direction
 		}
 		if(GameplayTimer.ball.getYPos() < this.ballBoundsMarginY || GameplayTimer.ball.getYPos() > Gameplay.WINDOW_HEIGHT-this.ballBoundsMarginY) {
 			GameplayTimer.ball.setNormalizedVectorY(GameplayTimer.ball.getNormalizedVectorY() * -1);	//reverse y direction
 		}
 	
-	}
-
-	private void renderSprites() {
-		gc.clearRect(0, 0, Gameplay.WINDOW_WIDTH, Gameplay.WINDOW_HEIGHT);
-		gc.drawImage(background, 0, 0, Gameplay.WINDOW_WIDTH,Gameplay.WINDOW_HEIGHT);
-		GameplayTimer.thrower1.render(this.gc);
-		GameplayTimer.thrower2.render(this.gc);
-		GameplayTimer.taya.render(this.gc);
-		GameplayTimer.ball.render(gc);
 	}
 	
 	
@@ -298,6 +337,16 @@ public class GameplayTimer extends AnimationTimer{
 			}
 			
 		}
+	}
+
+
+	public long getStartTime() {
+		return startTime;
+	}
+
+
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
 	}
 
 }
