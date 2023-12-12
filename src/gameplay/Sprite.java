@@ -65,6 +65,10 @@ public class Sprite {
 		return this.img;
 	}
 
+	public void setImage(Image img) {
+		this.img = img;
+	}
+	
 	public double getXPos(){
 		return this.xPos;
 	}

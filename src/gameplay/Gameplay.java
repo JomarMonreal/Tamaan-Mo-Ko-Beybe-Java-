@@ -13,14 +13,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 public class Gameplay {
 	private Stage stage;
-	private Scene splashScene;		// the splash scene
-	private Scene gameScene;		// the game scene
+	private static Scene splashScene;		// the splash scene
+	private static Scene gameScene;		// the game scene
 	private Group root;
 	private Canvas canvas;			// the canvas where the animation happens
+	private static Scene endScene;
 	
 	public final static int WINDOW_WIDTH = 400;
 	public final static int WINDOW_HEIGHT = 700;
@@ -29,7 +29,7 @@ public class Gameplay {
 		this.canvas = new Canvas( Gameplay.WINDOW_WIDTH, Gameplay.WINDOW_HEIGHT );
 		this.root = new Group();
         this.root.getChildren().add( this.canvas );
-        this.gameScene = new Scene( root );
+        Gameplay.gameScene = new Scene( root );
 	}
 	
 	public void setStage(Stage stage) {
@@ -37,8 +37,9 @@ public class Gameplay {
 		this.stage.setTitle( "Tamaan Mo Ko Beybe" );
         
 		this.initSplash(stage);			// initializes the Splash Screen with the New Game button
+		this.initEnd(stage);
 		
-		this.stage.setScene( this.splashScene );
+		this.stage.setScene( Gameplay.splashScene );
         this.stage.setResizable(false);
 		this.stage.show();
 		//this.setGame(stage);
@@ -47,18 +48,34 @@ public class Gameplay {
 	private void initSplash(Stage stage) {
 		StackPane root = new StackPane();
 		root.getChildren().addAll(this.createVBox(),this.createAboutButton(200, 400),this.createDevelopersButton(200, 500),this.createPlayButton(200, 300));
-        this.splashScene = new Scene(root);
+        Gameplay.splashScene = new Scene(root);
+	}
+	
+	private void initEnd(Stage stage) {
+		StackPane root = new StackPane();
+		root.getChildren().addAll(this.createVBox(),this.createGameOverButton(200,400));
+		Gameplay.endScene = new Scene(root);
 	}
 	
 	void setGame(Stage stage) {
-        stage.setScene( this.gameScene );	
+        stage.setScene( Gameplay.gameScene );	
         
         GraphicsContext gc = this.canvas.getGraphicsContext2D();	// we will pass this gc to be able to draw on this Game's canvas
         
-        GameplayTimer gameTimer = new GameplayTimer(gc, gameScene);
+        GameplayTimer gameTimer = new GameplayTimer(gc, gameScene,stage);
         gameTimer.start();			// this internally calls the handle() method of our GameTimer
         
 	}	
+	
+	public static void setGameOver(Stage stage) {
+        stage.setScene( Gameplay.endScene );	
+        
+	}
+	
+	public static void setHome(Stage stage) {
+        stage.setScene( Gameplay.splashScene );	
+        
+	}
 	
 	private Canvas createCanvas() {
     	Canvas canvas = new Canvas(Gameplay.WINDOW_WIDTH,Gameplay.WINDOW_HEIGHT);
@@ -90,6 +107,7 @@ public class Gameplay {
             @Override 
             public void handle(ActionEvent e) {
                 setGame(stage);		// changes the scene into the game scene
+            	//setGameOver(stage);
             }
         });
 		box.getChildren().add(b1);
@@ -117,6 +135,21 @@ public class Gameplay {
 		b1.setTranslateX(x);
 		b1.setTranslateY(y);
 		
+		box.getChildren().add(b1);
+		return box;
+	}
+	
+	private VBox createGameOverButton(double x, double y) {
+		VBox box = new VBox();
+		Button b1 = new Button("Try Again!");
+		b1.setTranslateX(x);
+		b1.setTranslateY(y);
+		b1.setOnAction(new EventHandler<ActionEvent>() {
+            @Override 
+            public void handle(ActionEvent e) {
+                setHome(stage);	// changes the scene into the game scene
+            }
+        });
 		box.getChildren().add(b1);
 		return box;
 	}
