@@ -47,13 +47,13 @@ public class Gameplay {
 	
 	private void initSplash(Stage stage) {
 		StackPane root = new StackPane();
-		root.getChildren().addAll(this.createVBox(),this.createAboutButton(200, 400),this.createDevelopersButton(200, 500),this.createPlayButton(200, 300));
+		root.getChildren().addAll(this.createVBox("images/menubg.gif"),this.createAboutButton(200, 400),this.createDevelopersButton(200, 500),this.createPlayButton(200, 300));
         Gameplay.splashScene = new Scene(root);
 	}
 	
 	private void initEnd(Stage stage) {
 		StackPane root = new StackPane();
-		root.getChildren().addAll(this.createVBox(),this.createGameOverButton(200,400));
+		root.getChildren().addAll(this.createVBox("images/Game Over BG.gif"),this.createGameOverButton(200,400));
 		Gameplay.endScene = new Scene(root);
 	}
 	
@@ -87,9 +87,9 @@ public class Gameplay {
         return canvas;
     }
 	
-	private VBox createVBox() {
+	private VBox createVBox(String imagePath) {
 		VBox box = new VBox();
-		ImageView imgView = new ImageView("images/menubg.gif");
+		ImageView imgView = new ImageView(imagePath);
 		imgView.setFitWidth(WINDOW_WIDTH);
 		imgView.setFitHeight(WINDOW_HEIGHT);
 		

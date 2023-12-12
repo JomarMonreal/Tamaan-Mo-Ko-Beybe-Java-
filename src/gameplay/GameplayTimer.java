@@ -25,27 +25,17 @@ public class GameplayTimer extends AnimationTimer{
 	private Image throwerImage1 = new Image("images/charac1shadow.png");
 	private Image throwerImage2 = new Image("images/charac2shadow.png");
 	private Image ballImage = new Image("images/bola.png");
+	private double characterSize = 60;
 	
 	//for throwers
 	private static Thrower thrower1;
-	private static Thrower thrower2;
-	private static double throwerSpeed = 10;
-	private static double throwerX;
-	private static double throwerSize = 60;
-	private static boolean isThrower1Active = true;
-	
+	private static Thrower thrower2;	
+	private double throwerStartingX;
 	
 	//for ball
 	private static Ball ball;
-	private static double mouseX = 0;
-	private static double mouseY = 0;
-	private static double normalizedDirectionX = 0;
-	private static double normalizedDirectionY = 0;
-	private static boolean isBallMoving = false;
-	private double throwSpeed = 8.0;
 	private double ballBoundsMarginX = 80;
 	private double ballBoundsMarginY = 80;
-	private static double ballRadius = 30;
 	
 	//for taya
 	private static Taya taya;
@@ -58,14 +48,19 @@ public class GameplayTimer extends AnimationTimer{
 		this.gc = gc;
 		this.scene = scene;
 		this.stage = stage;
-		
-		GameplayTimer.throwerX = Gameplay.WINDOW_WIDTH/2 - GameplayTimer.throwerSize/2;
-		GameplayTimer.thrower1 = new Thrower(GameplayTimer.throwerX, 575, GameplayTimer.throwerSize, GameplayTimer.throwerSize, this.throwerImage1);
-		GameplayTimer.thrower2 = new Thrower(GameplayTimer.throwerX, 60, GameplayTimer.throwerSize, GameplayTimer.throwerSize, this.throwerImage2);
-		GameplayTimer.ball = new Ball(GameplayTimer.thrower1.getXPos() + GameplayTimer.ballRadius,GameplayTimer.thrower1.getYPos()-(GameplayTimer.throwerSize/2),GameplayTimer.ballRadius,this.ballImage);
-		GameplayTimer.taya = new Taya(200,350,GameplayTimer.throwerSize,GameplayTimer.throwerSize,this.tayaHarap,10);
-		GameplayTimer.taya.initDirectionalImages(this.tayaHarap, this.tayaLikod, this.tayaLeft, this.tayaRight);
 		this.prepareActionHandlers();
+		
+		//initializing throwers
+		this.throwerStartingX = Gameplay.WINDOW_WIDTH/2 - this.characterSize/2;
+		GameplayTimer.thrower1 = new Thrower(this.throwerStartingX, 575, this.characterSize, this.throwerImage1,10,true);
+		GameplayTimer.thrower2 = new Thrower(this.throwerStartingX, 60, this.characterSize, this.throwerImage2,10,false);
+		
+		//initializing ball
+		GameplayTimer.ball = new Ball(GameplayTimer.thrower1.getXPos() + 30, GameplayTimer.thrower1.getYPos()-(this.characterSize/2), 30, this.ballImage,10);
+		
+		//initializing taya
+		GameplayTimer.taya = new Taya(200,350,this.characterSize,this.characterSize,this.tayaHarap,9);
+		GameplayTimer.taya.initDirectionalImages(this.tayaHarap, this.tayaLikod, this.tayaLeft, this.tayaRight);
 	}
 
 
@@ -73,6 +68,13 @@ public class GameplayTimer extends AnimationTimer{
 	public void handle(long currentNanoTime) {
         this.moveSprites();
         this.renderSprites();
+        
+        //when taya was hit by ball
+		if(GameplayTimer.ball.collidesWith(GameplayTimer.taya)) {
+			this.stop();
+			Gameplay.setGameOver(stage);
+			GameplayTimer.ball.setMoving(false);
+		}
 	}
 
 	private void prepareActionHandlers() {
@@ -82,34 +84,23 @@ public class GameplayTimer extends AnimationTimer{
 			public void handle(MouseEvent event)
             {
     			if (event.getButton() == MouseButton.PRIMARY) { // if left mouse button clicked
-    				if(GameplayTimer.isBallMoving) {
+    				if(GameplayTimer.ball.isMoving()) {
     					return;
     				}
     				
-    				// update the position
-    				if(GameplayTimer.isThrower1Active) {
-    					GameplayTimer.ball.setXPos(GameplayTimer.thrower1.getXPos() + GameplayTimer.ballRadius);
-    					GameplayTimer.ball.setYPos(GameplayTimer.thrower1.getYPos() - (GameplayTimer.throwerSize/2));
+    				// update the starting posiiton of ball relative to thrower
+    				if(GameplayTimer.thrower1.isHoldingBall()) {
+    					GameplayTimer.ball.setXPos(GameplayTimer.thrower1.getXPos() + GameplayTimer.ball.getRadius());
+    					GameplayTimer.ball.setYPos(GameplayTimer.thrower1.getYPos() - (GameplayTimer.thrower1.height/2));
     				} else {
-    					GameplayTimer.ball.setXPos(GameplayTimer.thrower2.getXPos() + GameplayTimer.ballRadius);
-    					GameplayTimer.ball.setYPos(GameplayTimer.thrower2.getYPos() + GameplayTimer.throwerSize);
+    					GameplayTimer.ball.setXPos(GameplayTimer.thrower2.getXPos() + GameplayTimer.ball.getRadius());
+    					GameplayTimer.ball.setYPos(GameplayTimer.thrower2.getYPos() + GameplayTimer.thrower2.height);
     				}
     				
-    				GameplayTimer.mouseX = event.getX();
-    		        GameplayTimer.mouseY = event.getY();
-    			 
-    				// find direction of ball thrown when mouse clicked  
-    				double directionX = GameplayTimer.mouseX - GameplayTimer.ball.getXPos();
-    				double directionY = GameplayTimer.mouseY - GameplayTimer.ball.getYPos();
-    				
-    				// get magnitude to be used for computing new direction for x and y
-    				double magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
-    				
-    				// get unit vector for x and y
-    				GameplayTimer.normalizedDirectionX = directionX / magnitude;
-    				GameplayTimer.normalizedDirectionY = directionY / magnitude;
-    		        
-    		        GameplayTimer.isBallMoving = true;
+    				//then get the normalized vector for movement
+    				double mouseX = event.getX();
+    		        double mouseY = event.getY();
+    				GameplayTimer.ball.setNormalizedVector(mouseX, mouseY);
                 }
                 
             }
@@ -121,40 +112,23 @@ public class GameplayTimer extends AnimationTimer{
             {
 				//handles thrower movement
 				if (e.getCode() == KeyCode.RIGHT) {
-					if(GameplayTimer.thrower1.getXPos() < 270) {
-						GameplayTimer.thrower1.setXPos(GameplayTimer.thrower1.getXPos() + GameplayTimer.throwerSpeed);
-						GameplayTimer.thrower2.setXPos(GameplayTimer.thrower2.getXPos() + GameplayTimer.throwerSpeed);
-					}
+					GameplayTimer.thrower1.setDX(GameplayTimer.thrower1.getSpeed());
+					GameplayTimer.thrower2.setDX(GameplayTimer.thrower2.getSpeed());
 				} 	
 				else if (e.getCode() == KeyCode.LEFT) {
-					if(GameplayTimer.thrower1.getXPos() > 70) {
-						GameplayTimer.thrower1.setXPos(GameplayTimer.thrower1.getXPos() - GameplayTimer.throwerSpeed);
-						GameplayTimer.thrower2.setXPos(GameplayTimer.thrower2.getXPos() - GameplayTimer.throwerSpeed);
-					}
+					GameplayTimer.thrower1.setDX(GameplayTimer.thrower1.getSpeed() * -1);
+					GameplayTimer.thrower2.setDX(GameplayTimer.thrower2.getSpeed() * -1);
 				}	
-				GameplayTimer.followActiveThrower();
 				
 				//handles taya movement
 				if (e.getCode() == KeyCode.W) {
-					if(GameplayTimer.taya.getYPos() > 170) {
-						GameplayTimer.taya.setYPos(GameplayTimer.taya.getYPos() - GameplayTimer.taya.getSpeed());
-						GameplayTimer.taya.setImage(GameplayTimer.taya.getLikod());
-					}
+					GameplayTimer.taya.setDY(GameplayTimer.taya.getSpeed() * -1);
 				} else if (e.getCode() == KeyCode.S) {
-					if(GameplayTimer.taya.getYPos() < 480) {
-						GameplayTimer.taya.setYPos(GameplayTimer.taya.getYPos() + GameplayTimer.taya.getSpeed());
-						GameplayTimer.taya.setImage(GameplayTimer.taya.getHarap());
-					}
+					GameplayTimer.taya.setDY(GameplayTimer.taya.getSpeed());
 				} else if (e.getCode() == KeyCode.D) {
-					if(GameplayTimer.taya.getXPos() < 270) {
-						GameplayTimer.taya.setXPos(GameplayTimer.taya.getXPos() + GameplayTimer.taya.getSpeed());
-						GameplayTimer.taya.setImage(GameplayTimer.taya.getRight());
-					}
+					GameplayTimer.taya.setDX(GameplayTimer.taya.getSpeed());
 				} else if (e.getCode() == KeyCode.A) {
-					if(GameplayTimer.taya.getXPos() > 70) {
-						GameplayTimer.taya.setXPos(GameplayTimer.taya.getXPos() - GameplayTimer.taya.getSpeed());
-						GameplayTimer.taya.setImage(GameplayTimer.taya.getLeft());
-					}
+					GameplayTimer.taya.setDX(GameplayTimer.taya.getSpeed() * -1);
 				} 
 				
 				
@@ -163,47 +137,140 @@ public class GameplayTimer extends AnimationTimer{
 				
         });
     	
+    	this.scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent e) {
+				//handles thrower movement
+				if (e.getCode() == KeyCode.RIGHT) {
+					GameplayTimer.thrower1.setDX(0);
+					GameplayTimer.thrower2.setDX(0);
+				} 	
+				else if (e.getCode() == KeyCode.LEFT) {
+					GameplayTimer.thrower1.setDX(0);
+					GameplayTimer.thrower2.setDX(0);
+				}	
+				
+				//handles taya movement
+				if (e.getCode() == KeyCode.W) {
+					GameplayTimer.taya.setDY(0);
+				} else if (e.getCode() == KeyCode.S) {
+					GameplayTimer.taya.setDY(0);
+				} else if (e.getCode() == KeyCode.D) {
+					GameplayTimer.taya.setDX(0);
+				} else if (e.getCode() == KeyCode.A) {
+					GameplayTimer.taya.setDX(0);
+				} 
+				
+			}
+    		
+    	});
+    	
     	
     }
 	
 	private void moveSprites() {
-		this.moveBall(this.stage);
+		this.moveTaya();
+		this.moveBall();
+		this.moveThrowers();
+	}
+	
+	private void moveThrowers() {
+		//when thrower dx is zero, do nothing
+		if(GameplayTimer.thrower1.getDX() == 0) {
+			return;
+		}
+		//if dx is positive, go right
+		else if (GameplayTimer.thrower1.getDX() > 0) {
+			if(GameplayTimer.thrower1.getXPos() < 270) {
+				GameplayTimer.thrower1.setXPos(GameplayTimer.thrower1.getXPos() + GameplayTimer.thrower1.getDX());
+				GameplayTimer.thrower2.setXPos(GameplayTimer.thrower2.getXPos() + GameplayTimer.thrower2.getDX());
+			}
+		} 	
+		//if dy is negative, go left
+		else if (GameplayTimer.thrower1.getDX() < 0) {
+			if(GameplayTimer.thrower1.getXPos() > 70) {
+				GameplayTimer.thrower1.setXPos(GameplayTimer.thrower1.getXPos() + GameplayTimer.thrower1.getDX());
+				GameplayTimer.thrower2.setXPos(GameplayTimer.thrower2.getXPos() + GameplayTimer.thrower2.getDX());
+			}
+		}	
+		
+		//handles ball movement
+		GameplayTimer.followActiveThrower();
+		
+	}
+	
+	private void moveTaya() {
+		//do nothing when dx and dy = 0
+		if (GameplayTimer.taya.getDX() == 0 && GameplayTimer.taya.getDY() == 0){
+			return;
+		}
+		//if moving up
+		if(GameplayTimer.taya.getDY() < 0){
+			if(GameplayTimer.taya.getYPos() > 170) {
+				GameplayTimer.taya.setYPos(GameplayTimer.taya.getYPos() + GameplayTimer.taya.getDY());
+				GameplayTimer.taya.setImage(GameplayTimer.taya.getLikod());
+			}
+		} 
+		//if moving down
+		if (GameplayTimer.taya.getDY() > 0) {
+			if(GameplayTimer.taya.getYPos() < 480) {
+				GameplayTimer.taya.setYPos(GameplayTimer.taya.getYPos() + GameplayTimer.taya.getDY());
+				GameplayTimer.taya.setImage(GameplayTimer.taya.getHarap());
+			}
+		}
+		//if moving right
+		if (GameplayTimer.taya.getDX() > 0) {
+			if(GameplayTimer.taya.getXPos() < 270) {
+				GameplayTimer.taya.setXPos(GameplayTimer.taya.getXPos() + GameplayTimer.taya.getDX());
+				GameplayTimer.taya.setImage(GameplayTimer.taya.getRight());
+			}
+		}
+		//if moving left
+		if (GameplayTimer.taya.getDX() < 0) {
+			if(GameplayTimer.taya.getXPos() > 70) {
+				GameplayTimer.taya.setXPos(GameplayTimer.taya.getXPos() + GameplayTimer.taya.getDX());
+				GameplayTimer.taya.setImage(GameplayTimer.taya.getLeft());
+			}
+		} 
 	}
 
-
-	private void moveBall(Stage stage) {
-		if(GameplayTimer.isBallMoving == false) {
+	private void moveBall() {
+		//do nothing when ball is moving
+		if(GameplayTimer.ball.isMoving() == false) {
 			return;
 		}
-		if(GameplayTimer.ball.collidesWith(GameplayTimer.taya)) {
-			Gameplay.setGameOver(stage);
-			GameplayTimer.isBallMoving = false;
-		}
+		
+		//when ball hits the first thrower
 		if(GameplayTimer.ball.collidesWith(GameplayTimer.thrower1)) {
-			GameplayTimer.ball.setXPos(GameplayTimer.thrower1.getXPos() + GameplayTimer.ballRadius);
-			GameplayTimer.ball.setYPos(GameplayTimer.thrower1.getYPos() - (GameplayTimer.throwerSize/2));
-			GameplayTimer.isBallMoving = false;
-			GameplayTimer.isThrower1Active = true;
+			GameplayTimer.ball.setXPos(GameplayTimer.thrower1.getXPos());
+			GameplayTimer.ball.setYPos(GameplayTimer.thrower1.getYPos() - (GameplayTimer.thrower1.height/2));
+			GameplayTimer.ball.setMoving(false);
+			GameplayTimer.thrower1.setHoldingBall(true);
+			GameplayTimer.thrower2.setHoldingBall(false);
 			return;
-		} else if(GameplayTimer.ball.collidesWith(GameplayTimer.thrower2)) {
-			GameplayTimer.ball.setXPos(GameplayTimer.thrower2.getXPos() + GameplayTimer.ballRadius);
-			GameplayTimer.ball.setYPos(GameplayTimer.thrower2.getYPos() + GameplayTimer.throwerSize);
-			GameplayTimer.isBallMoving = false;
-			GameplayTimer.isThrower1Active = false;
+		} 
+		//when ball hits the second thrower
+		else if(GameplayTimer.ball.collidesWith(GameplayTimer.thrower2)) {
+			GameplayTimer.ball.setXPos(GameplayTimer.thrower2.getXPos());
+			GameplayTimer.ball.setYPos(GameplayTimer.thrower2.getYPos() + GameplayTimer.thrower2.height);
+			GameplayTimer.ball.setMoving(false);
+			GameplayTimer.thrower1.setHoldingBall(false);
+			GameplayTimer.thrower2.setHoldingBall(true);
 			return;
 		}
 		
 		
 		//update position based on speed
-		GameplayTimer.ball.setXPos(GameplayTimer.ball.getXPos() + GameplayTimer.normalizedDirectionX * this.throwSpeed);
-		GameplayTimer.ball.setYPos(GameplayTimer.ball.getYPos() + GameplayTimer.normalizedDirectionY * this.throwSpeed);
+		GameplayTimer.ball.setXPos(GameplayTimer.ball.getXPos() + GameplayTimer.ball.getNormalizedVectorX() * GameplayTimer.ball.getSpeed());
+		GameplayTimer.ball.setYPos(GameplayTimer.ball.getYPos() + GameplayTimer.ball.getNormalizedVectorY() * GameplayTimer.ball.getSpeed());
 		
 		//bouncing mechanics
 		if (GameplayTimer.ball.getXPos() < this.ballBoundsMarginX-10 || GameplayTimer.ball.getXPos() > Gameplay.WINDOW_WIDTH-this.ballBoundsMarginX) {
-			GameplayTimer.normalizedDirectionX *= -1;	//reverse x direction
+			GameplayTimer.ball.setNormalizedVectorX(GameplayTimer.ball.getNormalizedVectorX() * -1);	//reverse x direction
 		}
 		if(GameplayTimer.ball.getYPos() < this.ballBoundsMarginY || GameplayTimer.ball.getYPos() > Gameplay.WINDOW_HEIGHT-this.ballBoundsMarginY) {
-			GameplayTimer.normalizedDirectionY *= -1;	//reverse y direction
+			GameplayTimer.ball.setNormalizedVectorY(GameplayTimer.ball.getNormalizedVectorY() * -1);	//reverse y direction
 		}
 	
 	}
@@ -221,13 +288,13 @@ public class GameplayTimer extends AnimationTimer{
 	
 	//This section is for handling multiple inputs
 	private static void followActiveThrower() {
-		if(!GameplayTimer.isBallMoving) {
-			if(GameplayTimer.isThrower1Active) {
-				GameplayTimer.ball.setXPos(GameplayTimer.thrower1.getXPos() + GameplayTimer.ballRadius);
-				GameplayTimer.ball.setYPos(GameplayTimer.thrower1.getYPos() - (GameplayTimer.throwerSize/2));
+		if(!GameplayTimer.ball.isMoving()) {
+			if(GameplayTimer.thrower1.isHoldingBall()) {
+				GameplayTimer.ball.setXPos(GameplayTimer.thrower1.getXPos());
+				GameplayTimer.ball.setYPos(GameplayTimer.thrower1.getYPos() - (GameplayTimer.thrower1.height/2));
 			} else {
-				GameplayTimer.ball.setXPos(GameplayTimer.thrower2.getXPos() + GameplayTimer.ballRadius);
-				GameplayTimer.ball.setYPos(GameplayTimer.thrower2.getYPos() + GameplayTimer.throwerSize);
+				GameplayTimer.ball.setXPos(GameplayTimer.thrower2.getXPos());
+				GameplayTimer.ball.setYPos(GameplayTimer.thrower2.getYPos() + GameplayTimer.thrower2.height);
 			}
 			
 		}

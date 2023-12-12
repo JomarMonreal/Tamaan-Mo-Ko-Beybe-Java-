@@ -20,15 +20,6 @@ public class Sprite {
 		this.loadImage(image);
 		this.visible = true;
 	}
-    
-    public Sprite(double xPos, double yPos, double radius){
-		this.xPos = xPos;
-		this.yPos = yPos;
-		this.width = radius*2;
-		this.height = radius*2;
-		this.img = null;
-		this.visible = true;
-	}
 
 	private Rectangle2D getBounds(){
 		return new Rectangle2D(this.xPos, this.yPos, this.width, this.height);
@@ -52,14 +43,7 @@ public class Sprite {
 	public void render(GraphicsContext gc){
         gc.drawImage( this.img, this.xPos, this.yPos, this.width, this.height );
     }
-	
-	public void renderCircle(GraphicsContext gc, Color color){
-		// set gc as blue and draw it as a circle given the initialization of radius and x,y coordinates
-        gc.setFill(color);
-        //set bounding box for x - radius and y - radius then get width and height
-        gc.fillOval(this.xPos, this.yPos, this.width, this.height); 
-        
-	}
+
 
 	public Image getImage(){
 		return this.img;
@@ -89,9 +73,17 @@ public class Sprite {
 	public void setDX(double d){
 		this.dx = d;
 	}
-
+	
+	public double getDX() {
+		return this.dx;
+	}
+	
 	public void setDY(double val){
 		this.dy = val;
+	}
+	
+	public double getDY() {
+		return this.dy;
 	}
 
 	public boolean isVisible(){
