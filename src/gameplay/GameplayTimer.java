@@ -28,6 +28,7 @@ public class GameplayTimer extends AnimationTimer{
 	private long minutesLeft = 0;
 	private long secondsLeft = 0;
 	private long gameTimeLength = 20000;
+	private long delayBeforeFinish = 2500;
 	private boolean hasFinished = false;
 	private boolean isTayaWinner = false;
 	
@@ -180,11 +181,12 @@ public class GameplayTimer extends AnimationTimer{
 		
 		//do this when game is finished
 		if(this.hasFinished) {
-			
 			//wait for seconds before showing gameover screen
-			if(elapsedTime > 3000) {
+			if(elapsedTime > this.delayBeforeFinish) {
 				Gameplay.setGameOver(stage,this.isTayaWinner);
-				this.stackPane.getChildren().remove(1);
+				if(this.stackPane.getChildren().size() > 1) {
+					this.stackPane.getChildren().remove(1);
+				}
 				this.stop();
 			}
 			return;
@@ -204,12 +206,7 @@ public class GameplayTimer extends AnimationTimer{
 			GameplayTimer.ball.setMoving(false);
 			GameplayTimer.taya.setImage(GameplayTimer.taya.getGotHit());
 			this.render();
-			
-			ImageView timesUp = new ImageView("/images/time_sUp.gif");
-			timesUp.setScaleX(1.2);
-			timesUp.setScaleY(1.2);
-			this.stackPane.getChildren().add(timesUp);
-			
+						
 			this.hasFinished = true;
 			this.isTayaWinner = false;
 			this.startTime = System.currentTimeMillis(); //reset timer

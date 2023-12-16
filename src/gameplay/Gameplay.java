@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -43,6 +44,7 @@ public class Gameplay {
 	public void setStage(Stage stage) {
 		this.stage = stage;
 		this.stage.setTitle( "Tamaan Mo Ko Beybe" );
+		this.stage.getIcons().add(new Image("images/bola.png"));
         
 		this.initSplash(stage);			// initializes the Splash Screen with the New Game button
 		this.initEnd(stage);
