@@ -6,11 +6,13 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.EventHandler;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 //import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -25,11 +27,14 @@ public class GameplayTimer extends AnimationTimer{
 	private long timeLeft;
 	private long minutesLeft = 0;
 	private long secondsLeft = 0;
-	private long gameTimeLength = 30000;
+	private long gameTimeLength = 20000;
+	private boolean hasFinished = false;
+	private boolean isTayaWinner = false;
 	
 	private GraphicsContext gc;
 	private Scene scene;
 	private Stage stage;
+	private StackPane stackPane;
 	private Image background = new Image("images/bg.jpg");
 	private Image throwerImage1 = new Image("images/charac1shadow.png");
 	private Image throwerImage2 = new Image("images/charac2shadow.png");
@@ -54,11 +59,12 @@ public class GameplayTimer extends AnimationTimer{
 	private Image tayaRight = new Image("images/tayaright1.png");
 	private Image tayaGotHit = new Image("images/tayapatay.png");
 	
-	public GameplayTimer(GraphicsContext gc, Scene scene, Stage stage) {
+	public GameplayTimer(GraphicsContext gc, StackPane stackPane, Scene scene, Stage stage) {
 		this.gc = gc;
 		this.scene = scene;
 		this.stage = stage;
 		this.timeLeft = this.gameTimeLength;
+		this.stackPane = stackPane;
 		this.prepareActionHandlers();
 		
 		//initializing throwers
@@ -170,11 +176,25 @@ public class GameplayTimer extends AnimationTimer{
 	//overriding handle from AnimationTimer
 	@Override
 	public void handle(long currentNanoTime) {
+		long elapsedTime = System.currentTimeMillis() - this.startTime;
+		
+		//do this when game is finished
+		if(this.hasFinished) {
+			
+			//wait for seconds before showing gameover screen
+			if(elapsedTime > 3000) {
+				Gameplay.setGameOver(stage,this.isTayaWinner);
+				this.stackPane.getChildren().remove(1);
+				this.stop();
+			}
+			return;
+		}
+		
+		//do this while game hasn't yet finished
 		this.moveSprites();
 		this.render();
 		
 		//time handler
-		long elapsedTime = System.currentTimeMillis() - this.startTime;
 		this.timeLeft = this.gameTimeLength - elapsedTime;
 		this.minutesLeft = Math.floorDiv(timeLeft/1000, 60);
 		this.secondsLeft = (int) (timeLeft/1000) % 60;
@@ -183,19 +203,28 @@ public class GameplayTimer extends AnimationTimer{
 		if(GameplayTimer.ball.collidesWith(GameplayTimer.taya)) {
 			GameplayTimer.ball.setMoving(false);
 			GameplayTimer.taya.setImage(GameplayTimer.taya.getGotHit());
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			this.stop();
-			Gameplay.setGameOver(stage);
+			this.render();
+			
+			ImageView timesUp = new ImageView("/images/time_sUp.gif");
+			timesUp.setScaleX(1.2);
+			timesUp.setScaleY(1.2);
+			this.stackPane.getChildren().add(timesUp);
+			
+			this.hasFinished = true;
+			this.isTayaWinner = false;
+			this.startTime = System.currentTimeMillis(); //reset timer
 		}
+		
 		//when taya survives the round
-		if(this.timeLeft <= 0) {
-			GameplayTimer.ball.setMoving(false);			
-			this.stop();
-			Gameplay.setGameOver(stage);
+		else if(this.timeLeft <= 0) {
+			GameplayTimer.ball.setMoving(false);	
+			ImageView timesUp = new ImageView("/images/time_sUp.gif");
+			timesUp.setScaleX(1.2);
+			timesUp.setScaleY(1.2);
+			this.stackPane.getChildren().add(timesUp);
+			this.hasFinished = true;
+			this.isTayaWinner = true;
+			this.startTime = System.currentTimeMillis(); //reset timer
 		}
 		
         
