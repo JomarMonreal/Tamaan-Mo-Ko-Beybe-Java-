@@ -1,4 +1,4 @@
-
+//module info
 module TamaanMoKoBeybe {
 	requires javafx.base;
 	requires javafx.graphics;
