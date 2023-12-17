@@ -1,3 +1,12 @@
+/*************************************************************************************************************************
+ *
+ * Gameplay Timer
+ * Acts as the main game loop handler of the whole game
+ * 
+ * @author Jomar Monreal, Alessandro Marcus Ocampo, James Carl Villarosa
+ * @date 2023-12-18 
+ *************************************************************************************************************************/
+
 package gameplay;
 
 import javafx.animation.AnimationTimer;
@@ -25,13 +34,18 @@ public class GameplayTimer extends AnimationTimer{
 	private long secondsLeft = 0;
 	private long gameTimeLength = 20000;
 	private long delayBeforeFinish = 2500;
+	
+	//flags
 	private boolean hasFinished = false;
 	private boolean isTayaWinner = false;
 	
+	//internal nodes
 	private GraphicsContext gc;
 	private Scene scene;
 	private Stage stage;
 	private StackPane stackPane;
+	
+	//essential images
 	private Image background = new Image("images/bg.jpg");
 	private Image throwerImage1 = new Image("images/charac1shadow.png");
 	private Image throwerImage2 = new Image("images/charac2shadow.png");
@@ -56,6 +70,7 @@ public class GameplayTimer extends AnimationTimer{
 	private Image tayaRight = new Image("images/tayaright1.png");
 	private Image tayaGotHit = new Image("images/tayapatay.png");
 	
+	//constructor
 	public GameplayTimer(GraphicsContext gc, StackPane stackPane, Scene scene, Stage stage) {
 		this.gc = gc;
 		this.scene = scene;
@@ -82,6 +97,7 @@ public class GameplayTimer extends AnimationTimer{
 	//event handlers setup
 	private void prepareActionHandlers() {
     	
+		//when mouse is clicked
     	this.scene.setOnMouseClicked(new EventHandler<MouseEvent>() {
 
 			public void handle(MouseEvent event)
@@ -109,7 +125,7 @@ public class GameplayTimer extends AnimationTimer{
             }
     	});
     	
-    	
+    	//when key is pressed
     	this.scene.setOnKeyPressed(new EventHandler<KeyEvent>(){
 			public void handle(KeyEvent e)
             {
@@ -140,6 +156,7 @@ public class GameplayTimer extends AnimationTimer{
 				
         });
     	
+    	//when key is released
     	this.scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
 
 			@Override
@@ -175,6 +192,7 @@ public class GameplayTimer extends AnimationTimer{
 	//overriding handle from AnimationTimer
 	@Override
 	public void handle(long currentNanoTime) {
+		//keeps track of elapsed time
 		long elapsedTime = System.currentTimeMillis() - this.startTime;
 		
 		//do this when game is finished
@@ -220,6 +238,7 @@ public class GameplayTimer extends AnimationTimer{
 			timesUp.setScaleX(1.2);
 			timesUp.setScaleY(1.2);
 			timesUp.setTranslateY(70);
+			
 			this.stackPane.getChildren().add(timesUp);
 			this.hasFinished = true;
 			this.isTayaWinner = true;
@@ -229,28 +248,36 @@ public class GameplayTimer extends AnimationTimer{
         
 	}
 	
+	//move the sprites
 	private void moveSprites() {
 		this.moveTaya();
 		this.moveBall();
 		this.moveThrowers();
 	}
 	
+	//then re-render
 	private void render() {
+		//clear canvas
 		gc.clearRect(0, 0, Gameplay.WINDOW_WIDTH, Gameplay.WINDOW_HEIGHT);
+		
+		//then redraw background
 		gc.drawImage(background, 0, 0, Gameplay.WINDOW_WIDTH,Gameplay.WINDOW_HEIGHT);
 		
+		//redraw timer
 		gc.setTextAlign(TextAlignment.LEFT);
 		gc.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD,15));
 		String timeDisplayText = "Time remaining: " + Long.toString(secondsLeft) + " seconds left";
 		gc.setFill(Color.WHITE);
 		gc.fillText(timeDisplayText, 60, 40);
 		
+		//redraw sprites
 		GameplayTimer.thrower1.render(this.gc);
 		GameplayTimer.thrower2.render(this.gc);
 		GameplayTimer.taya.render(this.gc);
 		GameplayTimer.ball.render(gc);
 	}
 	
+	//move throwers
 	private void moveThrowers() {
 		//when thrower dx is zero, do nothing
 		if(GameplayTimer.thrower1.getDX() == 0) {
@@ -276,6 +303,7 @@ public class GameplayTimer extends AnimationTimer{
 		
 	}
 	
+	// move taya
 	private void moveTaya() {
 		//do nothing when dx and dy = 0
 		if (GameplayTimer.taya.getDX() == 0 && GameplayTimer.taya.getDY() == 0){
@@ -310,7 +338,8 @@ public class GameplayTimer extends AnimationTimer{
 			}
 		} 
 	}
-
+	
+	//move ball
 	private void moveBall() {
 		//do nothing when ball is moving
 		if(GameplayTimer.ball.isMoving() == false) {
@@ -353,7 +382,7 @@ public class GameplayTimer extends AnimationTimer{
 	
 	
 	
-	//This section is for handling multiple inputs
+	// when the ball is not moving, just let it follow the thrower holding it
 	private static void followActiveThrower() {
 		if(!GameplayTimer.ball.isMoving()) {
 			if(GameplayTimer.thrower1.isHoldingBall()) {
