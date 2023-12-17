@@ -1,3 +1,12 @@
+/*************************************************************************************************************************
+ *
+ * Sound Handler
+ * Manages sound and music
+ * 
+ * @author Jomar Monreal, Alessandro Marcus Ocampo, James Carl Villarosa
+ * @date 2023-12-18 
+ *************************************************************************************************************************/
+
 package gameplay;
 
 import java.io.File;
