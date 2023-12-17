@@ -20,6 +20,16 @@ public class Sprite {
 		this.loadImage(image);
 		this.visible = true;
 	}
+    
+    public Sprite(double xPos, double yPos, double width, double height, Image image, boolean isShorter){
+		this.xPos = xPos;
+		this.yPos = yPos;
+		this.width = width;
+		this.height = height;
+		this.loadImage(image);
+		this.visible = true;
+		this.isShorter = isShorter;
+	}
 
 	private Rectangle2D getBounds(boolean isShorter){
 		if(isShorter) {

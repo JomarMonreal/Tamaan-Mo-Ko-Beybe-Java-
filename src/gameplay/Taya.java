@@ -12,7 +12,7 @@ public class Taya extends Sprite{
 	private double speed;
 	
 	public Taya(double xPos, double yPos, double width, double height, Image image, double speed) {
-		super(xPos,yPos,width,height,image);
+		super(xPos,yPos,width,height,image,true);
 		this.speed = speed;
 		this.isShorter = true;
 	}

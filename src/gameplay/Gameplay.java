@@ -1,8 +1,8 @@
 package gameplay;
 
-
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -12,6 +12,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Gameplay {
@@ -54,6 +60,9 @@ public class Gameplay {
 		this.stage.setScene( Gameplay.splashScene );
         this.stage.setResizable(false);
 		this.stage.show();
+		
+		SoundHandler.mediaPlayer = new MediaPlayer(SoundHandler.menuMusic);
+		SoundHandler.mediaPlayer.play();
 		//this.setGame(stage);
 	}
 	
@@ -75,7 +84,7 @@ public class Gameplay {
 
 	private void initEnd(Stage stage) {
 		StackPane root = new StackPane();
-		Function backToMenu = () -> setHome(stage);
+		Function backToMenu = () -> setHome(stage,true);
 		Button menuButton = this.createButton(0, 100, "Play Again", "white", "#fe5502", "#ff945f" ,backToMenu);
 		
 		root.getChildren().addAll(this.createVBox("images/plainBackground.png"),menuButton);
@@ -87,27 +96,99 @@ public class Gameplay {
 	private void initAbout(Stage stage) {
 		StackPane root = new StackPane();
 		
-		/** Insert code here
-		 * 
-		 * 
-		 * 
-		 * */
+		Function goBack = () -> setHome(stage,false); //para makabalik sa home
+		Button backButton = this.createButton(0, 300, "Go Back", "white", "#fe5502", "#ff945f", goBack);
+
+		Text gameTitleText = new Text("Game Title: Tamaan Mo Ko Beybe\n" +
+		        "Genre: 2-Player Arcade\n\n");
+	    Text gameInfoText = new Text(
+	        "Objectives: \n" + 
+	        "This is a two-player game consisting of a\nthrowing team and a dodger. The goal of the \nthrowing team is to hit the dodger with the ball \nbefore the time runs out. The goal \nof the dodger is to dodge the ball \nuntil the time runs out.\n\n" +
+	        "Overview: \n" +
+	        "In the Philippines, Tamaang Tao (Dodgeball) \nis widely played by Filipinos of all ages. \nIt is basically a group game where the tagging \nteam(taya) aims to eliminate opponents \nby throwing a ball at dodgers. \nTarget players (pain) are in \nthe middle of the rectangular playing \narea while tagging teams are located at \nthe end lines. To get the point, the \nthrowers must strike the dodger within \na set amount of time, while the dodgers must \ndodge the ball until the time runs out.\n\n" +
+	        "Controls:\n" +
+	        "Throwing team - \nMouse position, mouse left and right button, \nleft and right arrow keys\n" +
+	        "Dodger - \nW, A, S, D keys"
+	    );
+	    
+	    gameTitleText.setTranslateY(-275);
+	    gameTitleText.setFill(Color.BLACK);
+	    gameTitleText.setFont(Font.font("System", FontWeight.BOLD, 20));
+	    
+	    gameInfoText.setTranslateY(0);
+	    gameInfoText.setFill(Color.BLACK);
+	    gameInfoText.setFont(Font.font("System", FontWeight.BOLD, 14));  
+
+
+	    root.getChildren().addAll(this.createVBox("images/plainBackground.png"), backButton, gameTitleText, gameInfoText);
 		
-		root.getChildren().addAll(this.createVBox("images/plainBackground.png"));
 		Gameplay.aboutScene = new Scene(root);
 	}
 	
 	private void initDevelopers(Stage stage) {
 		StackPane root = new StackPane();
-		/** Insert code here
-		 * 
-		 * 
-		 * 
-		 * */
-		root.getChildren().addAll(this.createVBox("images/plainBackground.png"));
+		 
+		VBox textContainer = new VBox();
+        //textContainer.setAlignment(Pos.CENTER); 
+        textContainer.setSpacing(10);
+
+        // Add images above each name
+        ImageView jomarImage = new ImageView(new Image("images/jom.png"));
+        jomarImage.setFitWidth(100); 
+        jomarImage.setFitHeight(100); 
+        ImageView alessandroImage = new ImageView(new Image("images/marcus.png"));
+        alessandroImage.setFitWidth(100); 
+        alessandroImage.setFitHeight(100); 
+        ImageView jamesImage = new ImageView(new Image("images/james.png"));
+        jamesImage.setFitWidth(100); 
+        jamesImage.setFitHeight(100); 
+
+        VBox jomarContainer = new VBox();
+        jomarContainer.setAlignment(Pos.CENTER); 
+        jomarContainer.getChildren().addAll(jomarImage, createStyledText("Name: Monreal Jomar P.\n" +
+                "Age: 19\n" +
+                "Motto: Hangga't mayroon, may gagawin\n" +
+                "Description: Jomar Monreal is a college boi who likes to \nwander anywhere as long as there's something to move. \nIf I can move my legs, I need to walk. If I can move my \nhands, I need to do something. I'm an active inertia."));
+        
+        VBox alessandroContainer = new VBox();
+        alessandroContainer.setAlignment(Pos.CENTER); 
+        alessandroContainer.getChildren().addAll(alessandroImage, createStyledText("Name: Ocampo, Alessandro Marcus M.\n" +
+                "Age: 20\n" +
+                "Motto: shawty is an eenie meanie miny mo lava\n" +
+                "Description: My hobbies are sleeping and eating and i am a \nprofessional rapper. Because I was once a young boy and \nno I dont play with toys eyyy. Anyways that's a clip \nand i'll see you on the flip side."));
+        
+        VBox jamesContainer = new VBox();
+        jamesContainer.setAlignment(Pos.CENTER);
+        jamesContainer.getChildren().addAll(jamesImage, createStyledText("Name: Villarosa, James Carl V.\n" +
+                "Age: 19\n" +
+                "Motto: Hangga't may kabutihang asal sa mundo,\nmay munggo\n" +
+                "Decription: My name is James, simple lang at medyo may \nangas.I like computers, badminton, guitar, and I like \nthe way she calls my name, jems."));
+
+        VBox imageAndNameContainer = new VBox();
+        imageAndNameContainer.setAlignment(Pos.CENTER);
+        imageAndNameContainer.getChildren().addAll(jomarContainer, alessandroContainer, jamesContainer);
+        
+        
+        Function goBack = () -> setHome(stage,false); //para makabalik sa home
+		Button backButton = this.createButton(0, 300, "Go Back", "white", "#fe5502", "#ff945f", goBack);
+		
+		
+        root.getChildren().add(this.createVBox("images/plainBackground.png"));
+        root.getChildren().add(textContainer);
+        root.getChildren().add(backButton);
+        
+        ((VBox) root.getChildren().get(1)).getChildren().add(0, imageAndNameContainer);
 		Gameplay.developerScene = new Scene(root);
 	}
 	
+	private Text createStyledText(String content) {
+        Text styledText = new Text(content);
+        styledText.setFill(Color.BLACK);
+        styledText.setFont(Font.font("System", FontWeight.BOLD, 12));
+        styledText.setLineSpacing(-3);
+        return styledText;
+    }
+
 	void setGame(Stage stage) {
         stage.setScene( Gameplay.gameScene );	
         
@@ -115,8 +196,12 @@ public class Gameplay {
         
         GameplayTimer gameTimer = new GameplayTimer(gc, this.gameStackPane,gameScene,stage);
         gameTimer.setStartTime(System.currentTimeMillis());
-        gameTimer.start();			// this internally calls the handle() method of our GameTimer
+        SoundHandler.mediaPlayer.stop();
+        SoundHandler.mediaPlayer = new MediaPlayer(SoundHandler.gameplayMusic);
+        SoundHandler.mediaPlayer.play();
         
+        // this internally calls the handle() method of our GameplayTimer
+        gameTimer.start();
 	}	
 	
 	private void setDevelopers(Stage stage) {
@@ -141,7 +226,13 @@ public class Gameplay {
 	}
 	
 	//go back to home screen
-	public static void setHome(Stage stage) {
+	public static void setHome(Stage stage, boolean hasPlayed) {
+		if(hasPlayed) {
+			SoundHandler.mediaPlayer.stop();
+			SoundHandler.mediaPlayer = new MediaPlayer(SoundHandler.menuMusic);
+			SoundHandler.mediaPlayer.play();
+		}
+		
 		//remove image view in game over screen to reset
 		if(Gameplay.endStackPane.getChildren().size() > 2) {
 			Gameplay.endStackPane.getChildren().remove(2);

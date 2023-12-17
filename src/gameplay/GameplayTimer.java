@@ -1,18 +1,15 @@
 package gameplay;
 
 import javafx.animation.AnimationTimer;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.EventHandler;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-//import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -25,7 +22,6 @@ public class GameplayTimer extends AnimationTimer{
 	//all in milliseconds
 	private long startTime = 0;
 	private long timeLeft;
-	private long minutesLeft = 0;
 	private long secondsLeft = 0;
 	private long gameTimeLength = 20000;
 	private long delayBeforeFinish = 2500;
@@ -77,7 +73,9 @@ public class GameplayTimer extends AnimationTimer{
 		GameplayTimer.ball = new Ball(GameplayTimer.thrower1.getXPos() + 30, GameplayTimer.thrower1.getYPos()-(this.characterSize/2), 30, this.ballImage,10);
 		
 		//initializing taya
-		GameplayTimer.taya = new Taya(200,350,this.characterSize * 380/450,this.characterSize,this.tayaHarap,9);
+		double randomX = Math.random() * 200 +70;
+		double randomY = Math.random() * 310 +170;
+		GameplayTimer.taya = new Taya(randomX,randomY,this.characterSize * 380/450,this.characterSize,this.tayaHarap,9);
 		GameplayTimer.taya.initDirectionalImages(this.tayaHarap, this.tayaLikod, this.tayaLeft, this.tayaRight, this.tayaGotHit);
 	}
 	
@@ -198,7 +196,6 @@ public class GameplayTimer extends AnimationTimer{
 		
 		//time handler
 		this.timeLeft = this.gameTimeLength - elapsedTime;
-		this.minutesLeft = Math.floorDiv(timeLeft/1000, 60);
 		this.secondsLeft = (int) (timeLeft/1000) % 60;
 		
 		//when taya was hit by ball
@@ -206,6 +203,10 @@ public class GameplayTimer extends AnimationTimer{
 			GameplayTimer.ball.setMoving(false);
 			GameplayTimer.taya.setImage(GameplayTimer.taya.getGotHit());
 			this.render();
+			
+			SoundHandler.mediaPlayer.stop();
+			SoundHandler.mediaPlayer = new MediaPlayer(SoundHandler.deathSound);
+			SoundHandler.mediaPlayer.play();
 						
 			this.hasFinished = true;
 			this.isTayaWinner = false;
@@ -218,6 +219,7 @@ public class GameplayTimer extends AnimationTimer{
 			ImageView timesUp = new ImageView("/images/time_sUp.gif");
 			timesUp.setScaleX(1.2);
 			timesUp.setScaleY(1.2);
+			timesUp.setTranslateY(70);
 			this.stackPane.getChildren().add(timesUp);
 			this.hasFinished = true;
 			this.isTayaWinner = true;
@@ -239,9 +241,9 @@ public class GameplayTimer extends AnimationTimer{
 		
 		gc.setTextAlign(TextAlignment.LEFT);
 		gc.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD,15));
-		String timeDisplayText = "Time remaining: " + Long.toString(minutesLeft) + ":" + Long.toString(secondsLeft);
+		String timeDisplayText = "Time remaining: " + Long.toString(secondsLeft) + " seconds left";
 		gc.setFill(Color.WHITE);
-		gc.fillText(timeDisplayText, 30, 40);
+		gc.fillText(timeDisplayText, 60, 40);
 		
 		GameplayTimer.thrower1.render(this.gc);
 		GameplayTimer.thrower2.render(this.gc);
