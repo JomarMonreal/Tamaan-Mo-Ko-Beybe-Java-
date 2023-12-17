@@ -1,3 +1,13 @@
+/*************************************************************************************************************************
+ *
+ * Gameplay 
+ * The main gameplay of the game including menu and the game loop
+ * Also manages the stage and scenes
+ * 
+ * @author Jomar Monreal, Alessandro Marcus Ocampo, James Carl Villarosa
+ * @date 2023-12-18 
+ *************************************************************************************************************************/
+
 package gameplay;
 
 import javafx.event.ActionEvent;
@@ -21,23 +31,28 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Gameplay {
+	// essentials
 	private Stage stage;
 	private Group root;
-	private Canvas canvas;			// the canvas where the animation happens
+	private Canvas canvas;			
+	
+	//Stack Panes
 	private StackPane gameStackPane;
 	private static StackPane endStackPane;
 	
-	private static Scene splashScene;		// the splash scene
+	//Scenes
+	private static Scene splashScene;		
 	private static Scene aboutScene;
 	private static Scene developerScene;
-	private static Scene gameScene;		// the game scene
+	private static Scene gameScene;		
 	private static Scene endScene;
 	
+	//constants
 	public final static int WINDOW_WIDTH = 400;
 	public final static int WINDOW_HEIGHT = 700;
 	
+	//constructor
 	public Gameplay() {
-		
 		this.canvas = new Canvas( Gameplay.WINDOW_WIDTH, Gameplay.WINDOW_HEIGHT );
 		this.root = new Group();
 		this.gameStackPane = new StackPane();
@@ -47,25 +62,29 @@ public class Gameplay {
         Gameplay.gameScene = new Scene( root );
 	}
 	
+	//set up the stage
 	public void setStage(Stage stage) {
 		this.stage = stage;
 		this.stage.setTitle( "Tamaan Mo Ko Beybe" );
 		this.stage.getIcons().add(new Image("images/bola.png"));
         
-		this.initSplash(stage);			// initializes the Splash Screen with the New Game button
+		//initialize all scenes for the stage
+		this.initSplash(stage);			
 		this.initEnd(stage);
 		this.initAbout(stage);
 		this.initDevelopers(stage);
 		
+		//initial scene setup
 		this.stage.setScene( Gameplay.splashScene );
         this.stage.setResizable(false);
 		this.stage.show();
 		
+		//play music
 		SoundHandler.mediaPlayer = new MediaPlayer(SoundHandler.menuMusic);
 		SoundHandler.mediaPlayer.play();
-		//this.setGame(stage);
 	}
 	
+	//initialize menu/splash screen
 	private void initSplash(Stage stage) {
 		StackPane root = new StackPane();
 		
@@ -81,7 +100,8 @@ public class Gameplay {
 		root.getChildren().addAll(this.createVBox("images/menubg.gif"),startButton,aboutButton,developersButton);
 		Gameplay.splashScene = new Scene(root);
 	}
-
+	
+	//initialize end scene (the scene after the game)
 	private void initEnd(Stage stage) {
 		StackPane root = new StackPane();
 		Function backToMenu = () -> setHome(stage,true);
@@ -92,7 +112,7 @@ public class Gameplay {
 		Gameplay.endScene = new Scene(root);
 	}
 	
-	
+	//initialize about page
 	private void initAbout(Stage stage) {
 		StackPane root = new StackPane();
 		
@@ -125,6 +145,7 @@ public class Gameplay {
 		Gameplay.aboutScene = new Scene(root);
 	}
 	
+	//initialize developers page
 	private void initDevelopers(Stage stage) {
 		StackPane root = new StackPane();
 		 
@@ -181,6 +202,7 @@ public class Gameplay {
 		Gameplay.developerScene = new Scene(root);
 	}
 	
+	//stylizes the text
 	private Text createStyledText(String content) {
         Text styledText = new Text(content);
         styledText.setFill(Color.BLACK);
@@ -188,7 +210,8 @@ public class Gameplay {
         styledText.setLineSpacing(-3);
         return styledText;
     }
-
+	
+	//set scene into the main game loop
 	void setGame(Stage stage) {
         stage.setScene( Gameplay.gameScene );	
         
@@ -204,16 +227,19 @@ public class Gameplay {
         gameTimer.start();
 	}	
 	
+	//change scene to developer
 	private void setDevelopers(Stage stage) {
 		stage.setScene( Gameplay.developerScene );	
 	}
 	
+	//change scene to about
 	private void setAbout(Stage stage) {
 		stage.setScene( Gameplay.aboutScene );	
 	}
 	
-	//go back to game over screen
+	//change into end scene / game over scene
 	public static void setGameOver(Stage stage,boolean isTayaWinner) {
+		//show corresponding congratulatory message for the winner
 		ImageView tayaWins;
 		if(isTayaWinner) {
 			tayaWins = new ImageView("images/tayaWins.gif");
@@ -227,6 +253,7 @@ public class Gameplay {
 	
 	//go back to home screen
 	public static void setHome(Stage stage, boolean hasPlayed) {
+		//the user just played, go back to menu music so it won't reset
 		if(hasPlayed) {
 			SoundHandler.mediaPlayer.stop();
 			SoundHandler.mediaPlayer = new MediaPlayer(SoundHandler.menuMusic);
@@ -240,13 +267,12 @@ public class Gameplay {
         stage.setScene( Gameplay.splashScene );	
 	}
 	
-	//mainly for background
+	//mainly for title screen background
 	private VBox createVBox(String imagePath) {
 		VBox box = new VBox();
 		ImageView imgView = new ImageView(imagePath);
 		imgView.setFitWidth(WINDOW_WIDTH);
 		imgView.setFitHeight(WINDOW_HEIGHT);
-		
 		
 		box.getChildren().addAll(imgView);
 		return box;
@@ -301,6 +327,7 @@ public class Gameplay {
 	        );
 	    });
 	    
+	    //do Function when pressed
 	    button.setOnAction(new EventHandler<ActionEvent>() {
             @Override 
             public void handle(ActionEvent e) {
